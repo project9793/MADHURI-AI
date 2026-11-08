@@ -1,0 +1,6 @@
+{
+  "name": "Madhuri AI Voice Assistant",
+  "description": "Your Voice. Your World. Your Intelligent Companion. Full voice-to-voice multilingual AI assistant with Android device actions, memory, and native project code.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
