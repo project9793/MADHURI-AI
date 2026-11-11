@@ -1,0 +1,66 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the web app
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
+      - name: Bundle built site into APK assets
+        run: |
+          mkdir -p android/app/src/main/assets/www
+          cp -r dist/. android/app/src/main/assets/www/
+          ls android/app/src/main/assets/www
+
+      - name: Assemble debug APK
+        run: gradle -p android :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: madhuri-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Publish APK to release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: Madhuri AI v1.0.0
+          body: |
+            Madhuri AI - Android APK built from this repository (WebView shell around the Vite build).
+
+            Direct download: https://github.com/project9793/MADHURI-AI/releases/latest/download/app-debug.apk
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
